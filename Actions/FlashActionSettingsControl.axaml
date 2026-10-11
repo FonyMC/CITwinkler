@@ -1,0 +1,134 @@
+<ci:ActionSettingsControlBase x:Class="CITwinkler.Actions.FlashActionSettingsControl"
+                             x:TypeArguments="models:FlashActionSettings"
+                             x:CompileBindings="False"
+                             xmlns="https://github.com/avaloniaui"
+                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                             xmlns:local="clr-namespace:CITwinkler.Actions"
+                             xmlns:models="clr-namespace:CITwinkler.Models"
+                             xmlns:ci="http://classisland.tech/schemas/xaml/core"
+                             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+                             mc:Ignorable="d"
+                             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:FlashActionSettingsControl}}">
+        <StackPanel Classes="component-settings-container animated-intro">
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE8B7;}"
+                                 Header="作用目标"
+                                 Description="选择要让哪些「闪烁内容」组件闪烁。">
+                <fa:SettingsExpander.Footer>
+                    <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
+                        <TextBlock Text="全部"/>
+                        <ToggleSwitch IsChecked="{Binding Settings.TargetAll}"/>
+                    </StackPanel>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <Border Margin="0 4 0 8"
+                    IsVisible="{Binding !Settings.TargetAll}"
+                    Padding="8"
+                    CornerRadius="4"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    Background="{DynamicResource ControlFillColorTertiaryBrush}">
+                <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="选择要闪烁的组件"
+                                   VerticalAlignment="Center"
+                                   FontWeight="SemiBold"/>
+                        <Button Grid.Column="1"
+                                Content="刷新列表"
+                                Click="RefreshButton_OnClick"/>
+                    </Grid>
+                    <ListBox MaxHeight="220"
+                             ItemsSource="{Binding Targets}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock x:Name="EmptyTargetHint"
+                               Text="当前没有已加载的「闪烁内容」组件。请先把组件添加到主界面，再点击「刷新列表」。"
+                               TextWrapping="Wrap"
+                               Opacity="0.7"
+                               IsVisible="False"/>
+                </StackPanel>
+            </Border>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE916;}"
+                                 Header="自定义闪烁时长"
+                                 Description="关闭时按「组件循环时间 × 闪烁次数」自动计算总时长。">
+                <fa:SettingsExpander.Footer>
+                    <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
+                        <Slider Width="160"
+                                Minimum="0.5" Maximum="30"
+                                TickFrequency="0.5" TickPlacement="None"
+                                IsSnapToTickEnabled="True"
+                                Classes="auto-tooltip"
+                                IsEnabled="{Binding Settings.OverrideDuration}"
+                                Value="{Binding Settings.DurationSeconds}"/>
+                        <ToggleSwitch IsChecked="{Binding Settings.OverrideDuration}"/>
+                    </StackPanel>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE121;}"
+                                 Header="自定义闪烁次数"
+                                 Description="本次行动过程中描边明暗循环的次数。">
+                <fa:SettingsExpander.Footer>
+                    <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
+                        <Slider Width="160"
+                                Minimum="1" Maximum="10"
+                                TickFrequency="1" TickPlacement="None"
+                                IsSnapToTickEnabled="True"
+                                Classes="auto-tooltip"
+                                IsEnabled="{Binding Settings.OverrideTimes}"
+                                Value="{Binding Settings.Times}"/>
+                        <ToggleSwitch IsChecked="{Binding Settings.OverrideTimes}"/>
+                    </StackPanel>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE790;}"
+                                 Header="覆盖描边颜色"
+                                 Description="启用后本次闪烁使用下面的颜色，否则使用组件自身设置的颜色。">
+                <fa:SettingsExpander.Footer>
+                    <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
+                        <ColorPicker Color="{Binding Settings.Color, Mode=TwoWay}"
+                                     IsEnabled="{Binding Settings.OverrideColor}"/>
+                        <ToggleSwitch IsChecked="{Binding Settings.OverrideColor}"/>
+                    </StackPanel>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE7F4;}"
+                                 Header="覆盖描边粗细"
+                                 Description="启用后本次闪烁使用下面的描边粗细。">
+                <fa:SettingsExpander.Footer>
+                    <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
+                        <Slider Width="160"
+                                Minimum="0" Maximum="20"
+                                TickFrequency="1" TickPlacement="None"
+                                IsSnapToTickEnabled="True"
+                                Classes="auto-tooltip"
+                                IsEnabled="{Binding Settings.OverrideThickness}"
+                                Value="{Binding Settings.Thickness}"/>
+                        <ToggleSwitch IsChecked="{Binding Settings.OverrideThickness}"/>
+                    </StackPanel>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE8F8;}"
+                                 Header="忽略规则集限制"
+                                 Description="启用后，即使目标组件的规则集不满足，本次闪烁依然会执行。">
+                <fa:SettingsExpander.Footer>
+                    <ToggleSwitch IsChecked="{Binding Settings.IgnoreRuleset}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+        </StackPanel>
+    </Grid>
+</ci:ActionSettingsControlBase>

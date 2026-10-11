@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Configurations>Debug;Release;Debug_MSIX;Release_MSIX</Configurations>
+    <CreateCipx>true</CreateCipx>
+    <RootNamespace>CITwinkler</RootNamespace>
+    <AssemblyName>CITwinkler</AssemblyName>
+    <Version>1.0.4</Version>
+    <Authors>Fony Yu</Authors>
+    <Product>CITwinkler</Product>
+    <Description>ClassIsland 插件：提供「闪烁内容」容器组件与「闪烁」自动化行动。</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ClassIslandPluginSdkVersion>2.0.0.*</ClassIslandPluginSdkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClassIsland.PluginSdk" Version="$(ClassIslandPluginSdkVersion)">
+      <ExcludeAssets>runtime; native</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="manifest.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
+    ClassIsland.PluginSdk 在打包 .cipx 后默认调用 PowerShell 7（pwsh）生成 MD5 摘要。
+    部分机器只安装了 Windows 自带的 Windows PowerShell 5.1，这里在打包前把二进制名切回 powershell，
+    使 dotnet build 在未安装 pwsh 的机器上也能完整通过。
+  -->
+  <Target Name="UseWindowsPowerShellForCipxHash" BeforeTargets="CreateCipx">
+    <PropertyGroup>
+      <PowershellBinaryName>powershell</PowershellBinaryName>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Windows PowerShell 5.1 默认以 UTF-16 写入 checksums.md，这里统一转成 UTF-8，避免读取端编码不一致。
+    （使用 pwsh 时该文件本身就是 UTF-8，此步骤为幂等操作。）
+  -->
+  <Target Name="NormalizeCipxChecksumsEncoding" AfterTargets="CreateCipx" Condition="'$(CreateCipx)'=='true'">
+    <ReadLinesFromFile File="$(CipxPackageOutputDirectory)/checksums.md">
+      <Output TaskParameter="Lines" ItemName="_CipxChecksumLines" />
+    </ReadLinesFromFile>
+    <WriteLinesToFile File="$(CipxPackageOutputDirectory)/checksums.md"
+                      Lines="@(_CipxChecksumLines)"
+                      Overwrite="true"
+                      Encoding="UTF-8" />
+  </Target>
+
+</Project>

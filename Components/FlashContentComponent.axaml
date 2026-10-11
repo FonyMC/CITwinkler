@@ -1,0 +1,83 @@
+<ci:ComponentBase x:Class="CITwinkler.Components.FlashContentComponent"
+                  x:TypeArguments="models:FlashContentComponentSettings"
+                  x:CompileBindings="False"
+                  xmlns="https://github.com/avaloniaui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:local="clr-namespace:CITwinkler.Components"
+                  xmlns:models="clr-namespace:CITwinkler.Models"
+                  xmlns:ci="http://classisland.tech/schemas/xaml/core"
+                  ClipToBounds="False"
+                  mc:Ignorable="d"
+                  d:DesignHeight="450" d:DesignWidth="800">
+    <!--
+      描边渲染约定（非常重要，勿随意改动）
+
+      Avalonia 会为带 Effect 的元素建立「独立离屏图层」并在其上执行模糊滤镜，
+      因此「布局」与「滤镜」必须分开考虑：
+
+      1) 两个描边宿主必须用 VerticalAlignment/HorizontalAlignment = Stretch，
+         并且**绝对不能设置 Padding**。
+         这样宿主既不放大会占用空间、也不收缩内容：
+            · 子组件的位置、所在行的高度、组件上报给 ClassIsland 的期望尺寸，
+              全部与官方「分组容器」（GroupComponent）保持一致；
+            · 宿主尺寸 = 容器尺寸，离屏图层大小自然有界。
+
+         反面教材（1.0.1~1.0.3 的三个 bug 都出自这里，务必别再踩）：
+            · Stretch + Padding：Padding 会把组件撑高 2×(内外层 Padding 之和)。
+              一旦所在行的可用高度小于「内容高度 + Padding」，子组件会被压成 0×0 →
+              整个组件在主界面上完全空白。
+            · Center：需要计算偏移 (可用尺寸 - 内容尺寸) / 2，在某些宿主里会算错。
+            · Top：宿主会收缩到内容高度，于是子组件贴到容器上沿；而官方容器是 Stretch，
+              子组件在其内部是垂直居中的 —— 两者外观不一致。
+
+      2) ClipToBounds="True"：把离屏图层严格限制在自身范围内，
+         避免出现超大离屏缓冲（曾导致 CPU 飙升 20%+ 直至进程闪退）。
+         代价是光晕在宿主边界外会被裁掉，所以用下面的负外边距给边界预留光晕空间。
+
+      3) 外层宿主 Margin="-10 0" + 子组件容器 Margin="4 0" + presenter Margin="6 0"：
+         三个数值互相抵消，结果是
+            · 子组件位置与官方容器完全相同；
+            · 组件上报的期望宽度、以及容器内多个子组件之间的间距也与官方容器完全相同；
+            · 宿主额外向外多出 10px，专门用于容纳向外扩散的光晕。
+         改动其中任何一个，都必须同步推导调整另外两个，否则子组件会整体偏移或容器宽度异常。
+    -->
+    <Panel ClipToBounds="False"
+           DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:FlashContentComponent}}">
+        <!-- 外层描边（渐变的外圈颜色，仅在启用「渐变描边」时挂载滤镜） -->
+        <Border x:Name="OuterStrokeHost"
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch"
+                Margin="-10 0"
+                ClipToBounds="True"
+                Background="Transparent">
+            <!-- 内层描边（主色） -->
+            <Border x:Name="InnerStrokeHost"
+                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    ClipToBounds="True"
+                    Background="Transparent">
+                <ItemsControl x:Name="ChildrenHost"
+                              Margin="4 0"
+                              ClipToBounds="False"
+                              ItemsSource="{Binding Settings.Children}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Classes="components-panel" VerticalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ci:ComponentPresenter IsOnMainWindow="True"
+                                                   Settings="{Binding}"
+                                                   HidingRules="{Binding HidingRules, Mode=OneWay}"
+                                                   HideOnRule="{Binding HideOnRule, Mode=OneWay}"
+                                                   Margin="6 0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+        </Border>
+    </Panel>
+</ci:ComponentBase>

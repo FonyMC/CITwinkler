@@ -1,0 +1,7 @@
+id: fonyu.citwinkler
+name: CITwinkler
+description: 提供「闪烁内容」容器组件，可让其子组件在内容字符边缘进行描边渐变闪烁，并支持使用 ClassIsland 规则集限制闪烁条件；同时提供「闪烁」自动化行动，可用触发器对指定闪烁内容组件触发闪烁。
+entranceAssembly: "CITwinkler.dll"
+apiVersion: 2.0.0.0
+version: 1.0.2.0
+author: Fony Yu
