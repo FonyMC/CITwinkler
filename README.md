@@ -31,7 +31,7 @@
 
 # 支持
 
-由[HZYANG-2486](github.com/HZYANG-2486)为Fony Yu提供情绪价值。👈🤣(笑)
+由[HZYANG-2486](https://www.github.com/HZYANG-2486)为Fony Yu提供情绪价值。👈🤣(笑)
 
 ---
 
