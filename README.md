@@ -1,6 +1,9 @@
 # CITwinkler
 
+<img width="128" height="128" alt="icon" src="https://github.com/user-attachments/assets/aa628257-9894-4b47-8409-13202d08dc73" />
+
 新增一个容器组件，能使包含的子组件有描边闪烁效果。
+
 
 # 新内容
 
