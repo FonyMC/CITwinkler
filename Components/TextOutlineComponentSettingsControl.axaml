@@ -1,0 +1,129 @@
+<ci:ComponentBase x:Class="CITwinkler.Components.TextOutlineComponentSettingsControl"
+                  x:TypeArguments="models:TextOutlineComponentSettings"
+                  x:CompileBindings="False"
+                  xmlns="https://github.com/avaloniaui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:local="clr-namespace:CITwinkler.Components"
+                  xmlns:models="clr-namespace:CITwinkler.Models"
+                  xmlns:ci="http://classisland.tech/schemas/xaml/core"
+                  xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+                  mc:Ignorable="d"
+                  d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer>
+        <StackPanel Classes="component-settings-container animated-intro"
+                    DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:TextOutlineComponentSettingsControl}}">
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE739;}"
+                                 Header="启用描边"
+                                 Description="关闭后本组件退化为普通分组容器，不显示描边。本组件由CITwinkler提供。">
+                <fa:SettingsExpander.Footer>
+                    <ToggleSwitch IsChecked="{Binding Settings.IsEnabled}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE8AC;}"
+                                 Header="组件名称"
+                                 Description="用于在「闪烁」自动化行动中标识这个组件。">
+                <fa:SettingsExpander.Footer>
+                    <TextBox MinWidth="200"
+                             Text="{Binding Settings.InstanceName, UpdateSourceTrigger=PropertyChanged}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE790;}"
+                                 Header="描边颜色"
+                                 Description="描边线的颜色。">
+                <fa:SettingsExpander.Footer>
+                    <ColorPicker Color="{Binding Settings.LineColor, Mode=TwoWay}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE7F4;}"
+                                 Header="描边粗细"
+                                 Description="描边线的线宽（像素）。">
+                <fa:SettingsExpander.Footer>
+                    <Slider Width="200"
+                            Minimum="1" Maximum="20"
+                            TickFrequency="1" TickPlacement="None"
+                            IsSnapToTickEnabled="True"
+                            Classes="auto-tooltip"
+                            Value="{Binding Settings.LineThickness}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE7C4;}"
+                                 Header="描边间距"
+                                 Description="描边线到内容之间的间距（像素），范围 5 - 500。">
+                <fa:SettingsExpander.Footer>
+                    <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
+                        <Slider Width="180"
+                                Minimum="5" Maximum="500"
+                                TickFrequency="1" TickPlacement="None"
+                                IsSnapToTickEnabled="True"
+                                Classes="auto-tooltip"
+                                Value="{Binding Settings.LineGap}"/>
+                        <NumericUpDown Width="110"
+                                       Minimum="5" Maximum="500"
+                                       Increment="1"
+                                       FormatString="0"
+                                       Value="{Binding Settings.LineGapValue, Mode=TwoWay}"/>
+                    </StackPanel>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE121;}"
+                                 Header="闪烁模式"
+                                 Description="循环闪烁：描边线按循环时间在显示与隐藏之间渐变；保持描边：描边线常亮。">
+                <fa:SettingsExpander.Footer>
+                    <ComboBox Width="160" SelectedIndex="{Binding Settings.ModeValue}">
+                        <ComboBoxItem>循环闪烁</ComboBoxItem>
+                        <ComboBoxItem>保持描边</ComboBoxItem>
+                    </ComboBox>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE916;}"
+                                 Header="闪烁循环时间"
+                                 Description="一个完整明暗循环所需的秒数，仅在「循环闪烁」模式下生效。">
+                <fa:SettingsExpander.Footer>
+                    <Slider Width="200"
+                            Minimum="0.2" Maximum="20"
+                            TickFrequency="0.1" TickPlacement="None"
+                            IsSnapToTickEnabled="True"
+                            Classes="auto-tooltip"
+                            Value="{Binding Settings.CycleSeconds}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE8F8;}"
+                                 Header="启用规则集限制"
+                                 Description="启用后，只有下面的规则集满足时才会闪烁 / 显示描边；不满足时描边完全隐藏。">
+                <fa:SettingsExpander.Footer>
+                    <ToggleSwitch IsChecked="{Binding Settings.UseRuleset}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+            <Border Margin="0 0 0 8"
+                    IsVisible="{Binding Settings.UseRuleset}"
+                    Padding="8"
+                    CornerRadius="4"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    Background="{DynamicResource ControlFillColorTertiaryBrush}">
+                <ci:RulesetControl Ruleset="{Binding Settings.FlashRuleset}"
+                                   ShowTitle="True"/>
+            </Border>
+
+            <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE945;}"
+                                 Header="行动触发时忽略规则集"
+                                 Description="启用后，「闪烁」自动化行动触发的闪烁不再受上面的规则集限制。">
+                <fa:SettingsExpander.Footer>
+                    <ToggleSwitch IsChecked="{Binding Settings.ActionIgnoresRuleset}"/>
+                </fa:SettingsExpander.Footer>
+            </fa:SettingsExpander>
+
+        </StackPanel>
+    </ScrollViewer>
+</ci:ComponentBase>

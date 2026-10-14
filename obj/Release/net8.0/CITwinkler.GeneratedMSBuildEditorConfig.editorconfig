@@ -27,3 +27,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/白板/项目/CITwinkler/Components/FlashContentComponentSettingsControl.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/白板/项目/CITwinkler/Components/TextOutlineComponent.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/白板/项目/CITwinkler/Components/TextOutlineComponentSettingsControl.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

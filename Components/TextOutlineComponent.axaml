@@ -1,0 +1,60 @@
+<ci:ComponentBase x:Class="CITwinkler.Components.TextOutlineComponent"
+                  x:TypeArguments="models:TextOutlineComponentSettings"
+                  x:CompileBindings="False"
+                  xmlns="https://github.com/avaloniaui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:local="clr-namespace:CITwinkler.Components"
+                  xmlns:models="clr-namespace:CITwinkler.Models"
+                  xmlns:ci="http://classisland.tech/schemas/xaml/core"
+                  ClipToBounds="False"
+                  mc:Ignorable="d"
+                  d:DesignHeight="450" d:DesignWidth="800">
+    <!--
+      描边渲染约定（与「描边渐变闪烁」不同，这里刻意**不改变布局**）：
+
+      · 子组件部分与官方「分组容器」（GroupComponent）逐字一致：
+        ItemsControl Margin="-6 0" + ComponentPresenter Margin="6 0"，
+        两者净位移为 0，因此子组件位置、组件上报给 ClassIsland 的期望尺寸都与官方容器相同。
+        **不要**在这里加 Padding —— ClassIsland 主界面容器高度是受限的，
+        一旦组件期望高度超过可用高度，子组件会被排成 0×0，整个组件显示为空白（1.0.x 踩过）。
+
+      · 描边线是一个独立的 Border（OutlineHost），用**负外边距**把绘制区域向四周扩出去，
+        它不承载子组件，因此：
+            ① 不会挤压子组件（布局中性，组件上报尺寸不变）；
+            ② 对它做透明度动画时不会连带把子组件一起淡出。
+        外边距与厚重由 CodeBehind 依据「间距 + 粗细」计算：Margin = -(间距 + 粗细)，
+        于是描边线内边缘恰好落在内容边缘外「间距」像素处。
+    -->
+    <Panel ClipToBounds="False"
+           DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:TextOutlineComponent}}">
+        <!-- 子组件：结构与官方分组容器一致 -->
+        <ItemsControl x:Name="ChildrenHost"
+                      Margin="-6 0"
+                      ItemsSource="{Binding Settings.Children}"
+                      ClipToBounds="False">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Classes="components-panel" VerticalAlignment="Stretch"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <ci:ComponentPresenter IsOnMainWindow="True"
+                                           Settings="{Binding}"
+                                           HidingRules="{Binding HidingRules, Mode=OneWay}"
+                                           HideOnRule="{Binding HideOnRule, Mode=OneWay}"
+                                           Margin="6 0" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- 描边线：独立元素 + 负外边距向外扩展（布局中性，不参与挤压子组件） -->
+        <Border x:Name="OutlineHost"
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch"
+                IsHitTestVisible="False"
+                ClipToBounds="False"/>
+    </Panel>
+</ci:ComponentBase>

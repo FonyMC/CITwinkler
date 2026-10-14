@@ -16,7 +16,7 @@
 
             <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE8B7;}"
                                  Header="作用目标"
-                                 Description="选择要让哪些「闪烁内容」组件闪烁。">
+                                 Description="选择要让哪些组件闪烁。">
                 <fa:SettingsExpander.Footer>
                     <StackPanel Orientation="Horizontal" Classes="items-valign-center" Spacing="8">
                         <TextBlock Text="全部"/>
@@ -51,7 +51,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                     <TextBlock x:Name="EmptyTargetHint"
-                               Text="当前没有已加载的「闪烁内容」组件。请先把组件添加到主界面，再点击「刷新列表」。"
+                               Text="当前没有已加载的可闪烁组件。请先把「描边渐变闪烁」或「文字描边」添加到主界面，再点击「刷新列表」。"
                                TextWrapping="Wrap"
                                Opacity="0.7"
                                IsVisible="False"/>

@@ -10,7 +10,7 @@ namespace CITwinkler.Models;
 public partial class FlashActionSettings : ObservableObject
 {
     /// <summary>
-    /// 是否对所有「闪烁内容」组件生效。为 false 时仅对 <see cref="TargetInstanceIds"/> 中的组件生效。
+    /// 是否对所有可闪烁组件生效。为 false 时仅对 <see cref="TargetInstanceIds"/> 中的组件生效。
     /// </summary>
     [ObservableProperty]
     private bool _targetAll = true;

@@ -10,9 +10,9 @@ using CITwinkler.Services;
 namespace CITwinkler.Actions;
 
 /// <summary>
-/// 「闪烁」自动化行动：让指定的「闪烁内容」组件做一次描边渐变闪烁。
+/// 「闪烁」自动化行动：让指定的容器组件（「描边渐变闪烁」/「文字描边」）做一次闪烁。
 /// </summary>
-[ActionInfo("fonyu.citwinkler.flash", "闪烁", "\uE945", true, "闪烁内容")]
+[ActionInfo("fonyu.citwinkler.flash", "闪烁", "\uE945", true, "CITwinkler")]
 public class FlashAction : ActionBase<FlashActionSettings>
 {
     protected override async Task OnInvoke()

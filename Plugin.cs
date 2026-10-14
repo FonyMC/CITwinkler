@@ -17,11 +17,14 @@ public class Plugin : PluginBase
 {
     public override void Initialize(HostBuilderContext context, IServiceCollection services)
     {
-        // 闪烁服务：登记主界面上所有「闪烁内容」组件，并把「闪烁」行动的请求转发给它们。
+        // 闪烁服务：登记主界面上所有可闪烁的组件，并把「闪烁」行动的请求转发给它们。
         services.AddSingleton<FlashEffectService>();
 
-        // 「闪烁内容」容器组件（含设置界面）。
+        // 「描边渐变闪烁」容器组件（含设置界面）。
         services.AddComponent<FlashContentComponent, FlashContentComponentSettingsControl>();
+
+        // 「文字描边」容器组件（含设置界面）。
+        services.AddComponent<TextOutlineComponent, TextOutlineComponentSettingsControl>();
 
         // 「闪烁」自动化行动（含设置界面）。
         services.AddAction<FlashAction, FlashActionSettingsControl>();

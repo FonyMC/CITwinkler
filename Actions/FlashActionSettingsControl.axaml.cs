@@ -17,7 +17,7 @@ public partial class FlashActionSettingsControl : ActionSettingsControlBase<Flas
     private FlashEffectService? _service;
 
     /// <summary>
-    /// 当前可选的闪烁内容组件。
+    /// 当前可选的闪烁目标组件。
     /// </summary>
     public ObservableCollection<FlashTargetSelection> Targets { get; } = [];
 

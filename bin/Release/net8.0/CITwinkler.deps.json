@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "CITwinkler/1.0.4": {
+      "CITwinkler/1.2.0": {
         "dependencies": {
           "ClassIsland.PluginSdk": "2.0.0.2"
         },
@@ -645,7 +645,7 @@
     }
   },
   "libraries": {
-    "CITwinkler/1.0.4": {
+    "CITwinkler/1.2.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

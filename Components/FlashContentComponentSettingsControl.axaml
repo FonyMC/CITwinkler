@@ -17,7 +17,7 @@
 
             <fa:SettingsExpander IconSource="{ci:FluentIconSource &#xE739;}"
                                  Header="启用描边"
-                                 Description="关闭后本组件退化为普通分组容器，不显示描边。">
+                                 Description="关闭后本组件退化为普通分组容器，不显示描边。本组件由CITwinkler提供。">
                 <fa:SettingsExpander.Footer>
                     <ToggleSwitch IsChecked="{Binding Settings.IsEnabled}"/>
                 </fa:SettingsExpander.Footer>

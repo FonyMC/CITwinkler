@@ -34,7 +34,7 @@ public class FlashRequest
 }
 
 /// <summary>
-/// 可被闪烁的组件（即「闪烁内容」组件实例）。
+/// 可被闪烁的组件（即「描边渐变闪烁」/「文字描边」组件实例）。
 /// </summary>
 public interface IFlashTarget
 {
@@ -60,7 +60,7 @@ public interface IFlashTarget
 }
 
 /// <summary>
-/// 闪烁服务：负责收集主界面上所有「闪烁内容」组件实例，并把「闪烁」行动的请求转发给它们。
+/// 闪烁服务：负责收集主界面上所有可闪烁组件实例（「描边渐变闪烁」/「文字描边」），并把「闪烁」行动的请求转发给它们。
 /// 由插件以单例方式注册到容器中。
 /// </summary>
 public class FlashEffectService
@@ -74,7 +74,7 @@ public class FlashEffectService
     public event EventHandler? TargetsChanged;
 
     /// <summary>
-    /// 当前已加载的「闪烁内容」组件实例。
+    /// 当前已加载的可闪烁组件实例。
     /// </summary>
     public IReadOnlyList<IFlashTarget> Targets
     {
@@ -120,7 +120,7 @@ public class FlashEffectService
     /// 向匹配的目标发起闪烁。
     /// </summary>
     /// <param name="request">闪烁请求参数。</param>
-    /// <param name="targetAll">是否对所有「闪烁内容」组件生效。</param>
+    /// <param name="targetAll">是否对所有可闪烁组件生效。</param>
     /// <param name="targetIds">在 <paramref name="targetAll"/> 为 false 时生效的目标实例 ID 列表。</param>
     public void RequestFlash(FlashRequest request, bool targetAll, IReadOnlyList<Guid>? targetIds)
     {

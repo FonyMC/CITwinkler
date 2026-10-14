@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace CITwinkler.Components;
 
 /// <summary>
-/// 「闪烁内容」容器组件的交互逻辑。
+/// 「描边渐变闪烁」容器组件的交互逻辑。
 /// 通过 <see cref="DropShadowEffect"/> 在子组件内容（含文字字形）边缘绘制描边，
 /// 并把描边不透明度在最小 / 最大值之间做平滑渐变，形成「渐变闪烁」。
 /// </summary>
@@ -37,7 +37,7 @@ namespace CITwinkler.Components;
 /// </list>
 /// </remarks>
 [ContainerComponent]
-[ComponentInfo(ComponentGuid, "闪烁内容", "\uE945",
+[ComponentInfo(ComponentGuid, "描边渐变闪烁", "\uE945",
     "容器组件。包含的组件会在其内容字符边缘进行描边渐变闪烁，可自定义循环时间、颜色与粗细，并可用规则集限制闪烁条件。")]
 public partial class FlashContentComponent : ComponentBase<FlashContentComponentSettings>, IFlashTarget
 {
@@ -130,7 +130,7 @@ public partial class FlashContentComponent : ComponentBase<FlashContentComponent
     {
         get
         {
-            var name = string.IsNullOrWhiteSpace(Settings?.InstanceName) ? "闪烁内容" : Settings!.InstanceName;
+            var name = string.IsNullOrWhiteSpace(Settings?.InstanceName) ? "描边渐变闪烁" : Settings!.InstanceName;
             var id = InstanceId;
             return id == Guid.Empty ? name : $"{name}（{id.ToString()[..8]}）";
         }
@@ -207,7 +207,7 @@ public partial class FlashContentComponent : ComponentBase<FlashContentComponent
         {
             // 可视树缺失（XAML 未加载）时必须停在这里：
             // 继续执行会在 ApplyStaticVisuals 访问命名控件时抛 NullReferenceException。
-            Logger?.LogWarning("「闪烁内容」组件的可视树未加载，组件会显示为空白。");
+            Logger?.LogWarning("「描边渐变闪烁」组件的可视树未加载，组件会显示为空白。");
             return;
         }
 
@@ -232,7 +232,7 @@ public partial class FlashContentComponent : ComponentBase<FlashContentComponent
 
             _flashService?.Register(this);
 
-            Logger?.LogInformation("「闪烁内容」组件已加载：子组件 {ChildCount} 个，描边 {Thickness}px，模式 {Mode}。",
+            Logger?.LogInformation("「描边渐变闪烁」组件已加载：子组件 {ChildCount} 个，描边 {Thickness}px，模式 {Mode}。",
                 Settings.Children?.Count ?? 0, Settings.StrokeThickness, Settings.Mode);
         }
 
@@ -496,7 +496,7 @@ public partial class FlashContentComponent : ComponentBase<FlashContentComponent
             if (!_loggedEffectAreaSkip)
             {
                 _loggedEffectAreaSkip = true;
-                Logger?.LogWarning("「闪烁内容」组件当前渲染区域过大（约 {Area:F0} 像素），已暂时停用描边以免占用过多资源。", area);
+                Logger?.LogWarning("「描边渐变闪烁」组件当前渲染区域过大（约 {Area:F0} 像素），已暂时停用描边以免占用过多资源。", area);
             }
 
             return;

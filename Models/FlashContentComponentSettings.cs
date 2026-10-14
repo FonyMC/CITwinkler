@@ -25,7 +25,7 @@ public enum FlashMode
 }
 
 /// <summary>
-/// 「闪烁内容」组件设置。
+/// 「描边渐变闪烁」组件设置。
 /// 注意：类型名 / 属性名会参与 JSON 序列化，改动会导致已有配置失效。
 /// </summary>
 public partial class FlashContentComponentSettings : ObservableObject, IComponentContainerSettings
@@ -40,7 +40,7 @@ public partial class FlashContentComponentSettings : ObservableObject, IComponen
     /// 组件实例名称，仅用于在「闪烁」行动中标识这个组件。
     /// </summary>
     [ObservableProperty]
-    private string _instanceName = "闪烁内容";
+    private string _instanceName = "描边渐变闪烁";
 
     /// <summary>
     /// 组件实例 ID。首次创建时生成，之后随配置持久化，用于「闪烁」行动定位目标。
