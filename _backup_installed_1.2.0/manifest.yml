@@ -1,0 +1,7 @@
+id: fonyu.citwinkler
+name: "CITwinkler 灵动闪烁"
+description: 提供「描边渐变闪烁」与「文字描边」两个容器组件，可让其子组件在内容边缘进行描边闪烁（分别对应双色渐变描边与可调间距的单色实线描边），并支持使用 ClassIsland 规则集限制闪烁条件；同时提供「闪烁」自动化行动，可用触发器对指定的组件触发闪烁。
+entranceAssembly: "CITwinkler.dll"
+apiVersion: 2.0.0.0
+version: 1.2.0.0
+author: Fony Yu

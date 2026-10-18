@@ -13,11 +13,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Fony Yu")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("ClassIsland 插件：提供「描边渐变闪烁」与「文字描边」两个容器组件，以及「闪烁」自动化行动。")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.0")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.1.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.1+3474108ecf002c99bb430fa90d91d64962647911")]
 [assembly: System.Reflection.AssemblyProductAttribute("CITwinkler 灵动闪烁")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CITwinkler")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.2.0.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.2.1.0")]
 
 // 由 MSBuild WriteCodeFragment 类生成。
 

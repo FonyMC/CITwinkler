@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ClassIsland.Core.Abstractions.Controls;
 using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Attributes;
@@ -14,25 +15,26 @@ namespace CITwinkler.Components;
 
 /// <summary>
 /// 「文字描边」容器组件的交互逻辑。
-/// 在子组件内容外围按设定间距绘制一圈实线描边，并可让该描边平滑闪烁。
+/// 用一圈实线紧紧包围子组件实际显示的内容（可调间距），并可让该描边平滑闪烁。
 /// </summary>
 /// <remarks>
 /// <para><b>与「描边渐变闪烁」的差别</b></para>
 /// <list type="bullet">
 ///   <item>单色实线描边，无渐变、无亮度范围设置。</item>
-///   <item>描边是一条独立于内容的线，与内容之间可调间距（5 - 500 px）。</item>
+///   <item>描边线围的是「子组件实际渲染出来的内容」，不是整个容器；线到内容之间可调间距（5 - 500 px）。</item>
 ///   <item>不使用任何 <c>Effect</c>，只对独立 Border 做透明度动画，渲染开销极低。</item>
 /// </list>
 /// <para><b>布局约定（勿改）</b></para>
 /// <para>
-/// 描边线通过**负外边距**向外扩展绘制区域，组件自身的布局尺寸完全不变（与官方分组容器一致）。
-/// 绝不能改用 <c>Padding</c> 来预留间距：ClassIsland 主界面容器高度受限，
+/// 描边线放在 <c>Canvas</c> 里做绝对定位，按「内容外接矩形 + 间距 + 线宽」计算位置与尺寸，
+/// 完全不参与布局，组件自身的布局尺寸与官方分组容器一致。
+/// 绝不能改用 <c>Padding</c> 或参与布局的包裹 <c>Border</c> 来预留间距：ClassIsland 主界面容器高度受限，
 /// 组件期望高度一旦超过可用高度，子组件会被排成 0×0，表现为整个组件空白。
 /// </para>
 /// </remarks>
 [ContainerComponent]
 [ComponentInfo(ComponentGuid, "文字描边", "\uE8D2",
-    "容器组件。在包含的组件外围按可调间距绘制一圈实线描边，可自定义颜色、粗细与间距，并支持闪烁与规则集限制。")]
+    "容器组件。用一圈实线紧贴包围容器内组件实际显示的内容（间距可调），可自定义颜色、粗细，并支持闪烁与规则集限制。")]
 public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSettings>, IFlashTarget
 {
     /// <summary>
@@ -86,6 +88,19 @@ public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSe
     /// 当前描边不透明度缓存，用于跳过数值未变化的帧。
     /// </summary>
     private double _currentOpacity = double.NaN;
+
+    /// <summary>
+    /// 上一次测量到的内容外接矩形（RootPanel 坐标系）与当时的扩张量。
+    /// 只有它们变化时才重新设置描边线的几何属性，避免每个布局帧都触发重排。
+    /// </summary>
+    private Rect _lastOutlineBounds;
+    private double _lastOutlinePad = double.NaN;
+    private bool _hasOutlineBounds;
+
+    /// <summary>
+    /// 内容视觉树的最大递归深度。防止异常控件树导致无限递归。
+    /// </summary>
+    private const int MaxContentDepth = 16;
 
     private IRulesetService? _rulesetService;
     private FlashEffectService? _flashService;
@@ -207,6 +222,9 @@ public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSe
                 _rulesetService.StatusUpdated += RulesetServiceOnStatusUpdated;
             }
 
+            // 布局稳定后重新贴合内容：子组件内容变化、窗口缩放、组件增删都会走到这里。
+            LayoutUpdated += OnLayoutUpdated;
+
             _isVisualsReady = true;
 
             _flashService?.Register(this);
@@ -238,6 +256,7 @@ public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSe
         }
 
         _isVisualsReady = false;
+        LayoutUpdated -= OnLayoutUpdated;
         Settings.PropertyChanged -= SettingsOnPropertyChanged;
         if (_rulesetService is not null)
         {
@@ -331,8 +350,8 @@ public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSe
     }
 
     /// <summary>
-    /// 应用描边颜色、粗细与间距。
-    /// 只在设置变化时调用，绝不要放进动画帧里。
+    /// 应用描边颜色与粗细，并重新贴合内容位置。
+    /// 只在设置变化 / 行动开始时调用，绝不要放进动画帧里。
     /// </summary>
     private void ApplyStaticVisuals()
     {
@@ -347,15 +366,6 @@ public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSe
             return;
         }
 
-        var thickness = Math.Clamp(settings.LineThickness, MinThickness, MaxThickness);
-        if (_isBursting && _burstThickness is { } burstThickness)
-        {
-            thickness = Math.Clamp(burstThickness, MinThickness, MaxThickness);
-        }
-
-        var color = _isBursting && _burstColor is { } burstColor ? burstColor : settings.LineColor;
-        var gap = Math.Clamp(settings.LineGap, MinGap, MaxGap);
-
         if (!settings.IsEnabled)
         {
             host.IsVisible = false;
@@ -364,12 +374,188 @@ public partial class TextOutlineComponent : ComponentBase<TextOutlineComponentSe
         }
 
         host.IsVisible = true;
-        host.BorderThickness = new Thickness(thickness);
-        host.BorderBrush = new SolidColorBrush(color);
+        host.BorderThickness = new Thickness(GetEffectiveThickness());
+        host.BorderBrush = new SolidColorBrush(
+            _isBursting && _burstColor is { } burstColor ? burstColor : settings.LineColor);
 
-        // 负外边距把描边线的绘制区域向外扩张，扩张量 = 间距 + 线宽，
-        // 于是描边线内边缘正好落在内容边缘外「间距」像素处，且不影响布局。
-        host.Margin = new Thickness(-(gap + thickness));
+        // 位置与尺寸由「内容外接矩形」决定，见 UpdateOutlineGeometry。
+        UpdateOutlineGeometry(force: true);
+    }
+
+    /// <summary>
+    /// 取当前生效的描边粗细（行动触发时可被覆盖）。
+    /// </summary>
+    private double GetEffectiveThickness()
+    {
+        var thickness = Math.Clamp(Settings?.LineThickness ?? MinThickness, MinThickness, MaxThickness);
+        if (_isBursting && _burstThickness is { } burstThickness)
+        {
+            thickness = Math.Clamp(burstThickness, MinThickness, MaxThickness);
+        }
+
+        return thickness;
+    }
+
+    private void OnLayoutUpdated(object? sender, EventArgs e)
+    {
+        var settings = Settings;
+        if (settings is null || !_isVisualsReady || !settings.IsEnabled)
+        {
+            return;
+        }
+
+        UpdateOutlineGeometry(force: false);
+    }
+
+    /// <summary>
+    /// 把描边线贴到「子组件实际渲染内容的外接矩形」上。
+    /// </summary>
+    /// <remarks>
+    /// 描边线位于 Canvas 内，用 <see cref="Canvas.SetLeft"/>/<see cref="Canvas.SetTop"/> 绝对定位，
+    /// 因此不参与布局；外接矩形向内收「间距」像素处即为描边线的内边缘，
+    /// 线宽再向外占一圈，所以向外扩张量 = 间距 + 线宽。
+    /// </remarks>
+    private void UpdateOutlineGeometry(bool force)
+    {
+        if (OutlineHost is not { } host || ChildrenHost is null || RootPanel is null)
+        {
+            return;
+        }
+
+        var settings = Settings;
+        if (settings is null || !_isVisualsReady)
+        {
+            return;
+        }
+
+        if (!settings.IsEnabled)
+        {
+            host.IsVisible = false;
+            _hasOutlineBounds = false;
+            return;
+        }
+
+        var pad = Math.Clamp(settings.LineGap, MinGap, MaxGap) + GetEffectiveThickness();
+
+        if (!TryGetContentBounds(out var bounds))
+        {
+            // 容器里没有任何可见内容时不画线，避免出现一个空框。
+            host.IsVisible = false;
+            _hasOutlineBounds = false;
+            return;
+        }
+
+        if (!force && _hasOutlineBounds && IsSameGeometry(bounds, pad))
+        {
+            return;
+        }
+
+        _lastOutlineBounds = bounds;
+        _lastOutlinePad = pad;
+        _hasOutlineBounds = true;
+
+        host.Width = bounds.Width + pad * 2;
+        host.Height = bounds.Height + pad * 2;
+        Canvas.SetLeft(host, bounds.X - pad);
+        Canvas.SetTop(host, bounds.Y - pad);
+        host.IsVisible = true;
+    }
+
+    private bool IsSameGeometry(Rect bounds, double pad) =>
+        Math.Abs(bounds.X - _lastOutlineBounds.X) < 0.01 &&
+        Math.Abs(bounds.Y - _lastOutlineBounds.Y) < 0.01 &&
+        Math.Abs(bounds.Width - _lastOutlineBounds.Width) < 0.01 &&
+        Math.Abs(bounds.Height - _lastOutlineBounds.Height) < 0.01 &&
+        Math.Abs(pad - _lastOutlinePad) < 0.01;
+
+    /// <summary>
+    /// 测量子组件实际绘制出来的内容的外接矩形（RootPanel 坐标系）。
+    /// </summary>
+    private bool TryGetContentBounds(out Rect bounds)
+    {
+        bounds = default;
+
+        if (ChildrenHost is not { } host)
+        {
+            return false;
+        }
+
+        var hasContent = false;
+        double left = 0, top = 0, right = 0, bottom = 0;
+        AccumulateContentBounds(host, 0, ref hasContent, ref left, ref top, ref right, ref bottom);
+
+        if (!hasContent)
+        {
+            return false;
+        }
+
+        bounds = new Rect(left, top, Math.Max(0, right - left), Math.Max(0, bottom - top));
+        return bounds.Width > 0.5 && bounds.Height > 0.5;
+    }
+
+    /// <summary>
+    /// 递归收集叶子视觉元素的边界并求并集。
+    /// 叶子 = 真正承载绘制内容的元素（TextBlock / Shape / Image 等）；
+    /// 只铺背景的容器叶子（Border / Panel / ContentControl 等）不计入，
+    /// 否则外接矩形会退化成整个容器，又变回「围着容器画框」。
+    /// </summary>
+    private void AccumulateContentBounds(
+        Visual visual, int depth,
+        ref bool hasContent, ref double left, ref double top, ref double right, ref double bottom)
+    {
+        if (depth > MaxContentDepth)
+        {
+            return;
+        }
+
+        var hasChildren = false;
+        foreach (var child in visual.GetVisualChildren())
+        {
+            hasChildren = true;
+            if (!child.IsEffectivelyVisible)
+            {
+                continue;
+            }
+
+            AccumulateContentBounds(child, depth + 1,
+                ref hasContent, ref left, ref top, ref right, ref bottom);
+        }
+
+        if (hasChildren || !visual.IsEffectivelyVisible)
+        {
+            return;
+        }
+
+        if (visual is Decorator or Panel or ContentControl or ItemsControl)
+        {
+            return;
+        }
+
+        var size = visual.Bounds.Size;
+        if (size.Width <= 0.5 && size.Height <= 0.5)
+        {
+            return;
+        }
+
+        if (visual.TranslatePoint(new Point(0, 0), RootPanel) is not { } origin)
+        {
+            return;
+        }
+
+        if (!hasContent)
+        {
+            left = origin.X;
+            top = origin.Y;
+            right = origin.X + size.Width;
+            bottom = origin.Y + size.Height;
+            hasContent = true;
+            return;
+        }
+
+        left = Math.Min(left, origin.X);
+        top = Math.Min(top, origin.Y);
+        right = Math.Max(right, origin.X + size.Width);
+        bottom = Math.Max(bottom, origin.Y + size.Height);
     }
 
     /// <summary>

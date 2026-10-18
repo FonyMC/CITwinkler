@@ -20,14 +20,13 @@
         **不要**在这里加 Padding —— ClassIsland 主界面容器高度是受限的，
         一旦组件期望高度超过可用高度，子组件会被排成 0×0，整个组件显示为空白（1.0.x 踩过）。
 
-      · 描边线是一个独立的 Border（OutlineHost），用**负外边距**把绘制区域向四周扩出去，
-        它不承载子组件，因此：
-            ① 不会挤压子组件（布局中性，组件上报尺寸不变）；
-            ② 对它做透明度动画时不会连带把子组件一起淡出。
-        外边距与厚重由 CodeBehind 依据「间距 + 粗细」计算：Margin = -(间距 + 粗细)，
-        于是描边线内边缘恰好落在内容边缘外「间距」像素处。
+      · 描边线（OutlineHost）围的是「子组件实际渲染出来的内容」，**不是整个容器**。
+        它放在 Canvas 里，由 CodeBehind 测出内容外接矩形后做绝对定位：
+        Canvas 参与测量时的期望尺寸恒为 0，因此这条线**完全不参与布局** ——
+        既不挤压子组件、也不改变组件上报尺寸；对它做透明度动画也不会连带淡出内容。
     -->
-    <Panel ClipToBounds="False"
+    <Panel x:Name="RootPanel"
+           ClipToBounds="False"
            DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:TextOutlineComponent}}">
         <!-- 子组件：结构与官方分组容器一致 -->
         <ItemsControl x:Name="ChildrenHost"
@@ -50,11 +49,12 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <!-- 描边线：独立元素 + 负外边距向外扩展（布局中性，不参与挤压子组件） -->
-        <Border x:Name="OutlineHost"
-                VerticalAlignment="Stretch"
-                HorizontalAlignment="Stretch"
-                IsHitTestVisible="False"
-                ClipToBounds="False"/>
+        <!-- 描边线：Canvas 内绝对定位，只紧贴子组件实际显示的内容 -->
+        <Canvas ClipToBounds="False"
+                IsHitTestVisible="False">
+            <Border x:Name="OutlineHost"
+                    IsHitTestVisible="False"
+                    ClipToBounds="False"/>
+        </Canvas>
     </Panel>
 </ci:ComponentBase>
